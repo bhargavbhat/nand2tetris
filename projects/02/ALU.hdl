@@ -42,5 +42,37 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+
+    // Preset x
+    Mux16(a=x, b=false, sel=zx, out=zerox);
+    Not16(in=zerox, out=bitnegx);
+    Mux16(a=zerox, b=bitnegx, sel=nx, out=presetx);
+
+    // Preset y
+    Mux16(a=y, b=false, sel=zy, out=zeroy);
+    Not16(in=zeroy, out=bitnegy);
+    Mux16(a=zeroy, b=bitnegy, sel=ny, out=presety);
+
+    // Arithmetic (add)
+    Add16(a=presetx, b=presety, out=pxpluspy);
+
+    // Logical (and)
+    And16(a=presetx, b=presety, out=pxandpy);
+
+    // Final out
+    Mux16(a=pxandpy, b=pxpluspy, sel=f, out=fout);
+    Not16(in=fout, out=bitnegfout);
+    Mux16(a=fout, b=bitnegfout, sel=no, out[0..7]=lonib, out[8..15]=hinib, out[15]=sign, out=out);
+    
+    // Control Signal ng
+    // Can't use hinib[7] due to "sub bus of an internal node..." error in Simulator
+    And(a=sign, b=true, out=ng);
+
+    // Control Signal zr
+    // Simulator not picking up NOR gate from Custom folder
+    Or8Way(in=lonib, out=lz);    // find out if lower nibble is all zeros
+    Or8Way(in=hinib, out=hz);    // find out if higher nibbler is all zeros
+    Or(a=lz, b=hz, out=allzero); // find out if entire 16bit number is all zeros
+    Not(in=allzero, out=zr);
+
 }
