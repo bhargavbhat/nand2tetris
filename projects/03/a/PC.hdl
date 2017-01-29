@@ -16,5 +16,21 @@ CHIP PC {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+
+    // Increment previous value
+    Inc16(in=outReg, out=outInc);
+
+    // Handle inc, load and reset (mux'es act as the if statement)
+    // Mux #1 -> select between new value to load or incremented value
+    // Mux #2 -> select between O/P of Mux #1 or reset value (all zeros)
+    Mux16(a=outInc, b=in, sel=load, out=outIncLd);
+    Mux16(a=outIncLd, b=false, sel=reset, out=newVal);
+
+    // determines if content of register must change
+    // cf1 -> first change flag : set for load or increment case
+    Or(a=load, b=inc, out=cf1);
+    Or(a=cf1, b=reset, out=changeReg);
+
+    // load register with new value, if needed
+    Register(in=newVal, load=changeReg, out=outReg, out=out);
 }
