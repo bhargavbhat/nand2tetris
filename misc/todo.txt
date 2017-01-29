@@ -1,0 +1,12 @@
+Week 1
+
+Week 2
+- Impliment Carry Look-Ahead adder for 16bit busses (Perspectives video)
+
+Week 3
+
+Week 4
+
+Week 5
+
+Week 6
