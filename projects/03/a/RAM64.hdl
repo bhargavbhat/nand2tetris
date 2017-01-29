@@ -15,5 +15,22 @@ CHIP RAM64 {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    //DMux to generate "load" signal for each bank
+    DMux8Way(a=b0, b=b1, c=b2, d=b3, e=b4, f=b5, g=b6, h=b7,
+                in=load, sel=address[3..5]);
+
+    //Bank of RAM8 Chips, address line determins which bank to use
+    RAM8(in=in, load=b0, address=address[0..2], out=outBank0);
+    RAM8(in=in, load=b1, address=address[0..2], out=outBank1);
+    RAM8(in=in, load=b2, address=address[0..2], out=outBank2);
+    RAM8(in=in, load=b3, address=address[0..2], out=outBank3);
+    RAM8(in=in, load=b4, address=address[0..2], out=outBank4);
+    RAM8(in=in, load=b5, address=address[0..2], out=outBank5);
+    RAM8(in=in, load=b6, address=address[0..2], out=outBank6);
+    RAM8(in=in, load=b7, address=address[0..2], out=outBank7);
+
+    //Mux to select contents of register within each bank
+    Mux8Way16(a=outBank0, b=outBank1, c=outBank2, d=outBank3,
+                e=outBank4, f=outBank5, g=outBank6, h=outBank7, 
+                sel=address[3..5], out=out);
 }
