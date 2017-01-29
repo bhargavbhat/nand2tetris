@@ -69,10 +69,7 @@ CHIP ALU {
     And(a=sign, b=true, out=ng);
 
     // Control Signal zr
-    // Simulator not picking up NOR gate from Custom folder
     Or8Way(in=lonib, out=lz);    // find out if lower nibble is all zeros
     Or8Way(in=hinib, out=hz);    // find out if higher nibbler is all zeros
-    Or(a=lz, b=hz, out=allzero); // find out if entire 16bit number is all zeros
-    Not(in=allzero, out=zr);
-
+    Nor(a=lz, b=hz, out=zr);     // find out if entire 16bit number is all zeros
 }
