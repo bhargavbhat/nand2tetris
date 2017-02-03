@@ -27,5 +27,20 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // generate load signal for Screen or RAM
+    DMux(in=load,sel=address[14],a=loadMem,b=loadScr);
+
+    // Memory Chips
+    RAM16K(in=in,load=loadMem,address=address[0..13],out=outMem);
+    Keyboard(out=outKbd);
+    Screen(in=in,load=loadScr,address=address[0..12],out=outScr);
+
+    // Output selection via Mux
+    // 15  14 13    12                 0
+    // 0    0  0     1    1111 1111 1111 ->  8191 -> RAM16K
+    // 0    0  1     1    1111 1111 1111 -> 16383 -> RAM16K
+    // 0    1  0     1    1111 1111 1111 -> 24575 -> Screen
+    // 0    1  1     0    0000 0000 0000 -> 24576 -> Keyboard
+
+    Mux4Way16(a=outMem,b=outMem,c=outScr,d=outKbd,sel=address[13..14],out=out);
 }
