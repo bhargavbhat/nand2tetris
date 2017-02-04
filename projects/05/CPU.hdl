@@ -39,5 +39,68 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    // A-Instr: 0 vvvvvvvvvvvvvvv
+    // C-Instr: 1 11 a c1c2c3c4c5c6 d1d2d3 j1j2j3
+    // instr[15] is OpCode "0" = A-Instr and "1" = C-Instr
+    
+    // determine type of instruction
+    Not(in=instruction[15], out=aInstr);
+    Not(in=aInstr, out=cInstr);
+
+    // determine ALU inputs : D and A/M depending on instruction[12]
+    Mux16(a=outA, b=inM, out=outAM, sel=instruction[12]);
+
+    // ALU : just patch thru the right signals
+    ALU(x=outD, y=outAM, 
+        zx=instruction[11],
+        nx=instruction[10],
+        zy=instruction[9],
+        ny=instruction[8],
+        f=instruction[7],
+        no=instruction[6],
+        out=outM, out=outALU,
+        zr=zr, ng=ng);
+    
+    // D Reg
+    // D is updated only when C-Instr AND d2 == 1
+    // Value of D comes from o/p of ALU
+    And(a=cInstr, b=instruction[4], out=loadD);
+    DRegister(in=outALU, load=loadD, out=outD);
+
+    // A Reg 
+    // A is updated only for A-Instr OR d1 == 1
+    // Value of A is either from A-Instr or o/p of ALU
+    Mux16(a=outALU, b=instruction, out=regAValue, sel=aInstr);
+    Or(a=aInstr, b=instruction[5], out=loadA);
+    ARegister(in=regAValue, load=loadA, out=outA, out[0..14]=addressM);
+
+    // M Reg (actually just the memory)
+    // M is updated only when C-Instr AND d3 == 1
+    // Value of M comes from o/p of ALU
+    // outALU to inM is out of scope of ALU, so
+    // just generate the writeM (load) signal
+    And(a=cInstr, b=instruction[3], out=writeM);
+
+    // Prog Counter
+    // JMP bits determine value of PC
+    // 000 : No Jump, PC++
+    // 111 : Unconditional Jump, PC = A
+    // xxx : Conditional Jump, check control signals from ALU
+    //       Jmp -> PC = A, No Jmp -> PC++
+    // always jump based on the output of the ALU (outALU)
+    // we already know whether it's negative (ng) or zero (zr)
+
+    // determine final JMP flag based
+    Not(in=ng, out=ge);                  // >= 0
+    Not(in=zr, out=nz);                  // != 0
+    And(a=ge, b=nz, out=ps);             // > 0
+    And(a=instruction[0], b=ps, out=j3); // j3 > 0
+    And(a=instruction[1], b=zr, out=j2); // j2 == 0
+    And(a=instruction[2], b=ng, out=j1); // j1 < 0
+    Or(a=j3, b=j2, out=j32);
+    Or(a=j32, b=j1, out=jmp);
+    
+    // Load PC with only if C-Instr and JMP bit set
+    And(a=cInstr, b=jmp, out=loadPC);
+    PC(reset=reset, load=loadPC, in=outA, inc=true, out[0..14]=pc);
 }
