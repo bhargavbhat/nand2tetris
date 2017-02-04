@@ -38,7 +38,7 @@ uint16_t translateAInst(const std::string& instr)
     if(instr.empty())
         return 0;
     else
-        return std::stoi(instr.substr(1, instr.length()));
+        return std::stoul(instr.substr(1, instr.length()));
 }
 
 std::string translateCmp(const std::string& cmp)
@@ -83,6 +83,52 @@ std::string translateCmp(const std::string& cmp)
 
     return resp;
 }
+
+std::string translateDst(const std::string& dst)
+{
+    std::string resp;
+    const std::map<std::string, std::string> DST_MAP = {
+        {"null","000"},
+        {"M","001"},
+        {"D","010"},
+        {"MD","011"},
+        {"A","100"},
+        {"AM","101"},
+        {"AD","110"},
+        {"AMD","111"},
+    };
+
+    // retrieve the bit pattern corresponding
+    // to the input computation
+    auto it = DST_MAP.find(dst);
+    if( it != DST_MAP.end())
+        resp = it->second;
+
+    return resp;
+}
+
+std::string translateJmp(const std::string& jmp)
+{
+    std::string resp;
+    const std::map<std::string, std::string> JMP_MAP = {
+    {"null","000"},
+    {"JGT ","001"},
+    {"JEQ ","010"},
+    {"JGE ","011"},
+    {"JLT ","100"},
+    {"JNE ","101"},
+    {"JLE ","110"},
+    {"JMP ","111"},
+    };
+
+    // retrieve the bit pattern corresponding
+    // to the input jump parameter
+    auto it = JMP_MAP.find(jmp);
+    if( it != JMP_MAP.end())
+        resp = it->second;
+    
+    return resp;
+}
 uint16_t translateCInst(const std::string& instr)
 {
     //format: dst=cmp;jmp
@@ -92,29 +138,44 @@ uint16_t translateCInst(const std::string& instr)
     auto dst_marker = instr.find("=", 0);
     auto cmp_marker = instr.find(";", dst_marker);
 
+#if 0
     std::cout<<"l:"<<instr.length()<<" d:"<<dst_marker<<" c:"<<cmp_marker<<std::endl;
+#endif
 
     auto dst = (dst_marker == std::string::npos)
-                ? "" : instr.substr(0, dst_marker);
+                ? "null" : instr.substr(0, dst_marker);
     auto cmp = (cmp_marker == std::string::npos) 
                 ? instr.substr(dst_marker+1, instr.length()) 
                 : instr.substr(dst_marker+1, cmp_marker-dst_marker-1);
     auto jmp = (cmp_marker == std::string::npos)
-                ? "" : instr.substr(cmp_marker+1, instr.length());
+                ? "null" : instr.substr(cmp_marker+1, instr.length());
 
+#if 0
     std::cout<<"|"<<dst
              <<"| = |"
              <<cmp
              <<"| ; |" 
              <<jmp
              <<"|"<<std::endl;
+#endif
 
     const std::string op_code = "111";
     std::string cmp_code = translateCmp(cmp);
-    std::cout<<"binary: "<<"|" << op_code << "|"
-             <<cmp_code
+    std::string dst_code = translateDst(dst);
+    std::string jmp_code = translateJmp(jmp);
+    std::string final_code = op_code + cmp_code + dst_code + jmp_code;
+
+#if 0
+    std::cout<<"breakup: "<<"|" << op_code << "|"
+             <<cmp_code <<"|"
+             <<dst_code <<"|"
+             <<jmp_code <<"|"
              <<std::endl;
-    return 0;
+
+    std::cout<<"binary: "<<final_code<<std::endl;
+#endif
+
+    return std::stoul(final_code);
 }
 
 void test_routines()
