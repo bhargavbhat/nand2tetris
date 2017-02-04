@@ -5,4 +5,4 @@ clean:
 	rm -f *.a *.o simple_assembler
 
 test:
-	./simple_assembler
+	./simple_assembler ../add/Add.asm ../add/Add.out

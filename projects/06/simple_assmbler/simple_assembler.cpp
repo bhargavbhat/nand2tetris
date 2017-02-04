@@ -4,47 +4,62 @@
 #include<algorithm> 
 #include<cstdint>
 #include<map>
+#include<bitset>
+#include<fstream>
+
+//#define DEBUG
+//#define TEST
 
 // Helper to remove unwanted chars
 std::string trim(const std::string& str)
 {
     std::stringstream out;
-    for(auto i : str)
+
+    // if len< 2 ignore, valid shortest instr: @1 etc
+    // if first two chars are "//", ignore, it is a comment
+    if((str.length() >= 2) && (str[0] != '/' && str[1] != '/'))
     {
-        if((i == ' ')||(i == '\t'))
-            continue;
-        else if(i == '/')
-            break;
-        else
-            out<<i;
+        for(auto i : str)
+        {
+            if((i == ' ')||(i == '\t'))
+                continue;
+            else if((i == '/') || (i == '\r') || (i == '\n'))
+                break;
+            else
+                out<<i;
+        }
     }
     return out.str();
 }
 
 bool isAInstr(const std::string& instr)
 {
-    if(instr.empty())
-        return false;
-    else if(instr[0] == '@')
-        return true;
-    else
-        return false;
+    return (!instr.empty() && instr[0] == '@') ? true : false;
 }
 
-uint16_t translateAInst(const std::string& instr)
+std::string translateAInst(const std::string& instr)
 {
     //format: @num 
     //strip '@' and atoi on number
-    if(instr.empty())
-        return 0;
-    else
-        return std::stoul(instr.substr(1, instr.length()));
+    const std::string op_code = "0";
+    uint16_t value = 0;
+
+    if(!instr.empty())
+        value = std::stoul(instr.substr(1, instr.length()));
+
+    // there is not std::bin, so use bitset
+    // to convert value into binary representation
+    // and discard MSB
+    std::bitset<16> resp = value;
+    return op_code + resp.to_string().substr(1, 15);
 }
 
-std::string translateCmp(const std::string& cmp)
+std::string lookup(bool isCMP, const std::string& in)
 {
     std::string resp;
-    const std::map<std::string, std::string> CMP_MAP = {
+
+    // lookup map for cmp bits
+    const std::map<std::string, std::string> CMAP = {
         {"0",    "0101010"},
         {"1",    "0111111"},
         {"-1",   "0111010"},
@@ -74,21 +89,12 @@ std::string translateCmp(const std::string& cmp)
         {"D|A",  "0010101"},
         {"D|M",  "1010101"},
     };
-    
-    // retrieve the bit pattern corresponding
-    // to the input computation
-    auto it = CMP_MAP.find(cmp);
-    if( it != CMP_MAP.end())
-        resp = it->second;
 
-    return resp;
-}
+    // common lookup for dst and jmp bits
+    std::map<std::string, std::string> DJMAP = {
+        {"null", "000"},
 
-std::string translateDst(const std::string& dst)
-{
-    std::string resp;
-    const std::map<std::string, std::string> DST_MAP = {
-        {"null","000"},
+        // dst bits
         {"M","001"},
         {"D","010"},
         {"MD","011"},
@@ -96,52 +102,51 @@ std::string translateDst(const std::string& dst)
         {"AM","101"},
         {"AD","110"},
         {"AMD","111"},
+
+        // jmp bits
+        {"JGT ","001"},
+        {"JEQ ","010"},
+        {"JGE ","011"},
+        {"JLT ","100"},
+        {"JNE ","101"},
+        {"JLE ","110"},
+        {"JMP ","111"},
     };
 
-    // retrieve the bit pattern corresponding
-    // to the input computation
-    auto it = DST_MAP.find(dst);
-    if( it != DST_MAP.end())
-        resp = it->second;
-
-    return resp;
-}
-
-std::string translateJmp(const std::string& jmp)
-{
-    std::string resp;
-    const std::map<std::string, std::string> JMP_MAP = {
-    {"null","000"},
-    {"JGT ","001"},
-    {"JEQ ","010"},
-    {"JGE ","011"},
-    {"JLT ","100"},
-    {"JNE ","101"},
-    {"JLE ","110"},
-    {"JMP ","111"},
-    };
-
-    // retrieve the bit pattern corresponding
-    // to the input jump parameter
-    auto it = JMP_MAP.find(jmp);
-    if( it != JMP_MAP.end())
-        resp = it->second;
+    // determine which map to use for lookup
+    // operation based on isCMP
+    auto& lookupMap = isCMP ? CMAP : DJMAP;
     
+    // retrieve the bit pattern corresponding
+    // to the input parameter
+    auto it = lookupMap.find(in);
+    if( it != lookupMap.end())
+        resp = it->second;
+   
+#ifdef DEBUG
+    std::cout<<__FUNCTION__<<"in:**"
+            <<in<<"**\t\t**"
+            <<resp<<"**"<<std::endl;
+#endif
+    // return bit pattern
     return resp;
 }
-uint16_t translateCInst(const std::string& instr)
+
+std::string translateCInst(const std::string& instr)
 {
     //format: dst=cmp;jmp
     //split into components: dst, cmp & jmp
-    //translate each
-    //concatenate result
+    //translate each and concat to get result
+    const std::string op_code = "111";
+   
+    // find the dst and cmp sub-expressions
+    // by looking for = and ; respectively
+    // dst is always to left of =
+    // cmp is always between = and ;
     auto dst_marker = instr.find("=", 0);
     auto cmp_marker = instr.find(";", dst_marker);
 
-#if 0
-    std::cout<<"l:"<<instr.length()<<" d:"<<dst_marker<<" c:"<<cmp_marker<<std::endl;
-#endif
-
+    // extract each component
     auto dst = (dst_marker == std::string::npos)
                 ? "null" : instr.substr(0, dst_marker);
     auto cmp = (cmp_marker == std::string::npos) 
@@ -150,32 +155,29 @@ uint16_t translateCInst(const std::string& instr)
     auto jmp = (cmp_marker == std::string::npos)
                 ? "null" : instr.substr(cmp_marker+1, instr.length());
 
-#if 0
-    std::cout<<"|"<<dst
-             <<"| = |"
-             <<cmp
-             <<"| ; |" 
-             <<jmp
-             <<"|"<<std::endl;
-#endif
+    // lookup bit pattern for each component
+    auto cmp_code = lookup(true, cmp);
+    auto dst_code = lookup(false, dst);
+    auto jmp_code = lookup(false, jmp);
 
-    const std::string op_code = "111";
-    std::string cmp_code = translateCmp(cmp);
-    std::string dst_code = translateDst(dst);
-    std::string jmp_code = translateJmp(jmp);
-    std::string final_code = op_code + cmp_code + dst_code + jmp_code;
+    // concat to get final bit pattern
+    auto final_code = op_code + cmp_code + dst_code + jmp_code;
 
-#if 0
-    std::cout<<"breakup: "<<"|" << op_code << "|"
-             <<cmp_code <<"|"
-             <<dst_code <<"|"
-             <<jmp_code <<"|"
+#ifdef DEBUG   
+    std::cout<<"i:"<<instr<<"\t"
+             <<"l:"<<instr.length()<<"\t"
+             <<"d:"<<dst_marker<<"\t"
+             <<"c:"<<cmp_marker<<std::endl;
+
+    std::cout<<"D:"<<dst<<"\t\t"
+             <<"C:"<<cmp<<"\t\t"
+             <<"J:"<<jmp<<"\t\t"
              <<std::endl;
 
-    std::cout<<"binary: "<<final_code<<std::endl;
+    std::cout<<"R:"<<final_code<<std::endl;
 #endif
 
-    return std::stoul(final_code);
+    return final_code;
 }
 
 void test_routines()
@@ -184,7 +186,8 @@ void test_routines()
     auto A_INSTR="@42";
     auto ASSIGN="M=M+1";
     auto C_INSTR1="MD=M+1;null";
-    auto C_INSTR2="MD=M+1";
+    auto C_INSTR2="MD=D+1";
+    auto C_INSTR3="MD=A-1;JGE";
     std::cout<<"***"<<LINE_OF_CODE<<"***"<<(trim(LINE_OF_CODE))<<"***"<<std::endl;
     std::cout<<A_INSTR<<" "<<isAInstr(A_INSTR)<<std::endl;
     std::cout<<ASSIGN<<" "<<isAInstr(ASSIGN)<<std::endl;
@@ -193,10 +196,57 @@ void test_routines()
     std::cout<<C_INSTR1<<" trans: " << translateCInst(C_INSTR1)<<std::endl;
     std::cout<<"-----------------"<<std::endl;
     std::cout<<C_INSTR2<<" trans: " << translateCInst(C_INSTR2)<<std::endl;
+    std::cout<<"-----------------"<<std::endl;
+    std::cout<<C_INSTR3<<" trans: " << translateCInst(C_INSTR3)<<std::endl;
 }
 
-int main()
+int main(int argc, char** argv)
 {
+#ifdef TEST
+    (void) argc;
+    (void) argv;
     test_routines();
+#else
+    
+    if(argc != 3)
+    {
+        std::cout<<"Usage: "<< argv[0] << " input.asm output.hack\n"<<std::endl;
+        return 0;
+    }
+
+    std::ifstream infile(argv[1]);
+    std::ofstream outfile(argv[2]);
+
+    while(infile.good())
+    {
+        // read input file line-by-line
+        std::string line;
+        std::string machine_code;
+        std::getline(infile, line);
+        line = trim(line);
+    
+        // if line has something interesting,
+        // process it and get the output binary code
+        if(!line.empty())
+        {
+            if(isAInstr(line))
+                machine_code = translateAInst(line);
+            else
+                machine_code = translateCInst(line);
+        }
+
+        // write output to outfile
+        if(!line.empty())
+        {
+            std::cout<<machine_code<<std::endl;
+            outfile<<machine_code<<std::endl;
+        }
+    }
+
+    //cleanup
+    infile.close();
+    outfile.close();
+#endif
+
     return 0;
 }
