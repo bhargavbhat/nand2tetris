@@ -104,13 +104,13 @@ std::string lookup(bool isCMP, const std::string& in)
         {"AMD","111"},
 
         // jmp bits
-        {"JGT ","001"},
-        {"JEQ ","010"},
-        {"JGE ","011"},
-        {"JLT ","100"},
-        {"JNE ","101"},
-        {"JLE ","110"},
-        {"JMP ","111"},
+        {"JGT","001"},
+        {"JEQ","010"},
+        {"JGE","011"},
+        {"JLT","100"},
+        {"JNE","101"},
+        {"JLE","110"},
+        {"JMP","111"},
     };
 
     // determine which map to use for lookup
@@ -144,7 +144,7 @@ std::string translateCInst(const std::string& instr)
     // dst is always to left of =
     // cmp is always between = and ;
     auto dst_marker = instr.find("=", 0);
-    auto cmp_marker = instr.find(";", dst_marker);
+    auto cmp_marker = instr.find(";", 0);
 
     // extract each component
     auto dst = (dst_marker == std::string::npos)
@@ -174,6 +174,11 @@ std::string translateCInst(const std::string& instr)
              <<"J:"<<jmp<<"\t\t"
              <<std::endl;
 
+    std::cout<<"CD:"<<dst_code<<"\t\t"
+             <<"CC:"<<cmp_code<<"\t\t"
+             <<"CJ:"<<jmp_code<<"\t\t"
+             <<std::endl;
+
     std::cout<<"R:"<<final_code<<std::endl;
 #endif
 
@@ -188,6 +193,8 @@ void test_routines()
     auto C_INSTR1="MD=M+1;null";
     auto C_INSTR2="MD=D+1";
     auto C_INSTR3="MD=A-1;JGE";
+    auto C_INSTR4="D;JGT";
+
     std::cout<<"***"<<LINE_OF_CODE<<"***"<<(trim(LINE_OF_CODE))<<"***"<<std::endl;
     std::cout<<A_INSTR<<" "<<isAInstr(A_INSTR)<<std::endl;
     std::cout<<ASSIGN<<" "<<isAInstr(ASSIGN)<<std::endl;
@@ -198,6 +205,8 @@ void test_routines()
     std::cout<<C_INSTR2<<" trans: " << translateCInst(C_INSTR2)<<std::endl;
     std::cout<<"-----------------"<<std::endl;
     std::cout<<C_INSTR3<<" trans: " << translateCInst(C_INSTR3)<<std::endl;
+    std::cout<<"-----------------"<<std::endl;
+    std::cout<<C_INSTR4<<" trans: " << translateCInst(C_INSTR4)<<std::endl;
 }
 
 int main(int argc, char** argv)
