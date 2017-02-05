@@ -40,7 +40,7 @@ std::string translateCInst(const std::string& instr)
     // dst is always to left of =
     // cmp is always between = and ;
     auto dst_marker = instr.find("=", 0);
-    auto cmp_marker = instr.find(";", dst_marker);
+    auto cmp_marker = instr.find(";", 0);
 
     // extract each component
     auto dst = (dst_marker == std::string::npos)
@@ -68,6 +68,11 @@ std::string translateCInst(const std::string& instr)
     std::cout<<"D:"<<dst<<"\t\t"
              <<"C:"<<cmp<<"\t\t"
              <<"J:"<<jmp<<"\t\t"
+             <<std::endl;
+
+    std::cout<<"CD:"<<dst_code<<"\t\t"
+             <<"CC:"<<cmp_code<<"\t\t"
+             <<"CJ:"<<jmp_code<<"\t\t"
              <<std::endl;
 
     std::cout<<"R:"<<final_code<<std::endl;

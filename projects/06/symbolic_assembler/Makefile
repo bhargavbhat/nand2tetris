@@ -5,4 +5,4 @@ clean:
 	rm -f *.a *.o symbolic_assembler
 
 test:
-	./symbolic_assembler
+	./symbolic_assembler ../max/Max.asm ../max/Max.out

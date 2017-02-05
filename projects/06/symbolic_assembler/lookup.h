@@ -54,13 +54,13 @@ std::string lookup(bool isCMP, const std::string& in)
         {"AMD","111"},
 
         // jmp bits
-        {"JGT ","001"},
-        {"JEQ ","010"},
-        {"JGE ","011"},
-        {"JLT ","100"},
-        {"JNE ","101"},
-        {"JLE ","110"},
-        {"JMP ","111"},
+        {"JGT","001"},
+        {"JEQ","010"},
+        {"JGE","011"},
+        {"JLT","100"},
+        {"JNE","101"},
+        {"JLE","110"},
+        {"JMP","111"},
     };
 
     // determine which map to use for lookup

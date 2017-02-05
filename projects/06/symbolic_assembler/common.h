@@ -4,7 +4,6 @@
 #include<sstream>
 
 //#define DEBUG
-//#define TEST
 
 // Helper to remove unwanted chars
 std::string trim(const std::string& str)
