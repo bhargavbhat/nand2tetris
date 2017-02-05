@@ -5,4 +5,4 @@ clean:
 	rm -f *.a *.o vm_translator
 
 test:
-	./vm_translator
+	./vm_translator ../MemoryAccess/BasicTest/BasicTest.vm

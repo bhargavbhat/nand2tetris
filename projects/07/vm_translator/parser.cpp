@@ -53,7 +53,7 @@ void Parser::advance(void)
         tokenizeCommand();
         ++_lineNum;
 
-#ifdef DEBUG
+#ifdef DEBUG_PARSER
         // print vm source line with line num
         std::cout<<_lineNum<<" "<<_currCommand<<std::endl;
 #endif
@@ -92,7 +92,7 @@ CommandType Parser::commandType(void)
     }
     else
     {
-#ifdef DEBUG
+#ifdef DEBUG_PARSER
         std::cout<<"No Tokens on line: "<<_lineNum<<std::endl;
 #endif
         return CommandType::C_INVALID_COMMAND;
@@ -135,3 +135,14 @@ void Parser::tokenizeCommand(void)
                 std::back_inserter(_cmdTokens)); 
     }
 }
+
+void Parser::close(void)
+{
+    _fIn.close();
+}
+
+const std::string Parser::getSourceLine(void)
+{
+    return _currCommand;
+}
+

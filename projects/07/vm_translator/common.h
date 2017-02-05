@@ -1,7 +1,12 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#define DEBUG
+#include<string>
+#include<algorithm>
+
+//#define DEBUG_PARSER
+//#define DEBUG_MAIN
+#define DEBUG_CODE_WRITER
 
 // commandType enum
 enum class CommandType
@@ -15,5 +20,7 @@ enum class CommandType
     C_MAX_COMMAND
 };
 
+std::string getFileName(const std::string& fileName);
+std::string removeFileExtn(const std::string& fileName);
 
 #endif

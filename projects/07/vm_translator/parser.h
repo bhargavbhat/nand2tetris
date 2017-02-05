@@ -15,6 +15,8 @@ class Parser
         CommandType commandType(void);
         std::string arg1(void);
         uint16_t arg2(void);
+        void close(void);
+        const std::string getSourceLine(void);
 
     private:
         void tokenizeCommand(void);
