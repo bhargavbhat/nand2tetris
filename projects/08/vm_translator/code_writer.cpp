@@ -3,7 +3,7 @@
 CodeWriter::CodeWriter(const std::string& outputFileName)
 {
     _fOut.open(outputFileName);
-    _fileName = getFileName(outputFileName);
+    setFilename(outputFileName);
     _jmpNumber = 0;
 }
 
@@ -261,4 +261,60 @@ std::string CodeWriter::getBaseAddr(const std::string& segment)
         return _fileName;
     else
         return "ERROR";
+}
+
+void CodeWriter::setFilename(const std::string& fileName)
+{
+    _fileName = getFileName(fileName);
+}
+
+void CodeWriter::writeInit(void)
+{
+    _fOut <<"// Init Code"<<std::endl
+        // set SP=256
+        <<"@256"<<std::endl
+        <<"D=A"<<std::endl
+        <<"@SP"<<std::endl
+        <<"M=D"<<std::endl
+
+        // TODO: Call Sys.Init
+
+        // infinite loop after boot code
+        <<"(BOOT)"<<std::endl
+        <<"@BOOT"<<std::endl
+        <<"0;JMP"<<std::endl
+        <<std::endl;
+}
+
+void CodeWriter::writeLabel(const std::string& label)
+{
+#ifdef DEBUG_CODE_WRITER
+    _fOut<<"// "<<_sourceLine<<std::endl;
+#endif
+
+    _fOut<<"("
+        <<_fileName<<"$"<<label
+        <<")"<<std::endl;
+}
+
+void CodeWriter::writeGoto(const std::string& label)
+{
+#ifdef DEBUG_CODE_WRITER
+    _fOut<<"// "<<_sourceLine<<std::endl;
+#endif
+    _fOut<<"@"
+        <<_fileName<<"$"<<label<<std::endl
+        <<"0;JMP"<<std::endl;
+}
+
+void CodeWriter::writeIfGoto(const std::string& label)
+{
+#ifdef DEBUG_CODE_WRITER
+    _fOut<<"// "<<_sourceLine<<std::endl;
+#endif
+    _fOut<<"@SP"<<std::endl
+        <<"AM=M-1"<<std::endl
+        <<"D=M"<<std::endl
+        <<"@"<<_fileName<<"$"<<label<<std::endl
+        <<"D;JNE"<<std::endl;
 }

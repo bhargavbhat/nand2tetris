@@ -15,6 +15,11 @@ class CodeWriter
         void close();
         void setSourceLine(const std::string& source);
 
+        void setFilename(const std::string& fileName);
+        void writeInit(void);
+        void writeLabel(const std::string& label);
+        void writeGoto(const std::string& label);
+        void writeIfGoto(const std::string& label);
     private:
         std::string getBaseAddr(const std::string& segment);
         std::ofstream _fOut;

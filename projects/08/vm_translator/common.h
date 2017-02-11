@@ -4,8 +4,8 @@
 #include<string>
 #include<algorithm>
 
-#define DEBUG_PARSER
-//#define DEBUG_MAIN
+//#define DEBUG_PARSER
+#define DEBUG_MAIN
 #define DEBUG_CODE_WRITER
 
 // commandType enum
@@ -16,6 +16,10 @@ enum class CommandType
     C_PUSH,
     C_POP,
     C_ARITHMETIC,
+   
+    C_LABEL,
+    C_GOTO,
+    C_IF_GOTO,
 
     C_MAX_COMMAND
 };

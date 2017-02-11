@@ -62,15 +62,15 @@ void Parser::advance(void)
 
 bool Parser::isArithmeticInstr(const std::string& instr)
 {
-    if( instr.compare("add") ||
-        instr.compare("sub") ||
-        instr.compare("neg") ||
-        instr.compare("eq")  ||
-        instr.compare("lt")  ||
-        instr.compare("gt")  ||
-        instr.compare("or")  ||
-        instr.compare("and") ||
-        instr.compare("not"))
+    if( instr.compare("add") == 0 ||
+        instr.compare("sub") == 0 ||
+        instr.compare("neg") == 0 ||
+        instr.compare("eq")  == 0 ||
+        instr.compare("lt")  == 0 ||
+        instr.compare("gt")  == 0 ||
+        instr.compare("or")  == 0 ||
+        instr.compare("and") == 0 ||
+        instr.compare("not") == 0)
         return true;
     else
         return false;
@@ -87,6 +87,12 @@ CommandType Parser::commandType(void)
             return CommandType::C_POP;
         else if(isArithmeticInstr(command))
             return CommandType::C_ARITHMETIC;
+        else if(command.compare("label") == 0)
+            return CommandType::C_LABEL;
+        else if(command.compare("goto") == 0)
+            return CommandType::C_GOTO;
+        else if(command.compare("if-goto") == 0)
+            return CommandType::C_IF_GOTO;
         else
             return CommandType::C_INVALID_COMMAND;
     }

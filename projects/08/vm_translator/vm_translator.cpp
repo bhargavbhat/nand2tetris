@@ -58,7 +58,34 @@ int main(int argc, char** argv)
                 c.writeArithmetic(p.arg1());
                 }
                 break;
-            default:
+             case CommandType::C_LABEL:
+                {
+#ifdef DEBUG_MAIN
+                std::cout<<"LABEL"<<std::endl;
+                std::cout<<"arg1 = "<<p.arg1()<<std::endl;
+#endif
+                c.writeLabel(p.arg1());
+                }
+                break;
+            case CommandType::C_GOTO:
+                {
+#ifdef DEBUG_MAIN
+                std::cout<<"GOTO"<<std::endl;
+                std::cout<<"arg1 = "<<p.arg1()<<std::endl;
+#endif
+                c.writeGoto(p.arg1());
+                }
+                break;
+            case CommandType::C_IF_GOTO:
+                {
+#ifdef DEBUG_MAIN
+                std::cout<<"IFGOTO"<<std::endl;
+                std::cout<<"arg1 = "<<p.arg1()<<std::endl;
+#endif
+                c.writeIfGoto(p.arg1());
+                }
+                break;
+           default:
 #ifdef DEBUG_MAIN
                 std::cout<<"UNK"<<std::endl;
 #endif
