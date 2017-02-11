@@ -1,4 +1,5 @@
-#include "code_writer.h"
+#include"code_writer.h"
+#include<sstream>
 
 CodeWriter::CodeWriter(const std::string& outputFileName)
 {
@@ -293,7 +294,7 @@ void CodeWriter::writeLabel(const std::string& label)
 #endif
 
     _fOut<<"("
-        <<_fileName<<"$"<<label
+        <<genLabel(label)
         <<")"<<std::endl;
 }
 
@@ -303,7 +304,7 @@ void CodeWriter::writeGoto(const std::string& label)
     _fOut<<"// "<<_sourceLine<<std::endl;
 #endif
     _fOut<<"@"
-        <<_fileName<<"$"<<label<<std::endl
+        <<genLabel(label)<<std::endl
         <<"0;JMP"<<std::endl;
 }
 
@@ -317,4 +318,157 @@ void CodeWriter::writeIfGoto(const std::string& label)
         <<"D=M"<<std::endl
         <<"@"<<_fileName<<"$"<<label<<std::endl
         <<"D;JNE"<<std::endl;
+}
+
+void CodeWriter::writeCall(const std::string& funcName,
+                            uint16_t numArgs)
+{
+#ifdef DEBUG_CODE_WRITER
+    _fOut<<"// "<<_sourceLine<<std::endl;
+#endif
+    auto ret = "RET." + funcName + "." + std::to_string(_jmpNumber);
+    ++_jmpNumber;
+
+    // Push ret address to stack
+    _fOut<<"@"<<ret<<std::endl
+     <<"D=A"<<std::endl
+     <<"@SP"<<std::endl
+     <<"A=M"<< std::endl
+     <<"M=D"<<std::endl
+     <<"@SP"<< std::endl
+     <<"M=M+1"<< std::endl
+
+     // Save caller's segments
+     <<saveSegment("LCL")
+     <<saveSegment("ARG")
+     <<saveSegment("THIS")
+     <<saveSegment("THAT")
+     
+     // Setup ARG for callee
+     // ARG = SP - numArgs - 5
+     <<"@SP"<<std::endl
+     <<"D=M"<<std::endl
+     <<"@"<<numArgs<<std::endl
+     <<"D=D-A"<<std::endl
+     <<"@5"<<std::endl
+     <<"D=D-A"<<std::endl
+     <<"@ARG"<<std::endl
+     <<"M=D"<<std::endl
+
+     // Setup LCL for callee
+     <<"@SP"<<std::endl
+     <<"D=M"<<std::endl
+     <<"@LCL"<<std::endl
+     <<"M=D"<<std::endl
+
+    //jump to function code
+    <<"@"<<funcName<<std::endl
+    <<"0;JMP"<<std::endl
+
+    //add return address label
+    <<"("<<ret<<")"<< std::endl; 
+}
+
+void CodeWriter::writeFunction(const std::string& funcName,
+                            uint16_t numLocals)
+{
+#ifdef DEBUG_CODE_WRITER
+    _fOut<<"// "<<_sourceLine<<std::endl;
+#endif
+    // store function name for label generation
+    _currFunction = funcName;
+    _fOut<<"("<<funcName<<")"<<std::endl;
+    for (int i = 0; i < numLocals; ++i)
+    {
+        _fOut<<"@0"<<std::endl
+        <<"D=A"<<std::endl
+        <<"@SP"<<std::endl
+        <<"A=M"<<std::endl
+        <<"M=D"<<std::endl
+        <<"@SP"<<std::endl
+        <<"M=M+1"<<std::endl;
+    }
+}
+
+void CodeWriter::writeReturn(void)
+{
+#ifdef DEBUG_CODE_WRITER
+    _fOut<<"// "<<_sourceLine<<std::endl;
+#endif
+    // Save result
+    _fOut<<"@SP"<<std::endl
+    <<"A=M-1"<<std::endl
+    <<"D=M"<<std::endl
+    <<"@R13"<<std::endl
+    <<"M=D"<<std::endl
+
+    <<"@LCL"<<std::endl
+    <<"D=M"<<std::endl
+    <<"@R14"<<std::endl
+    <<"M=D"<<std::endl
+
+    // Get return value
+    <<"@R14"<<std::endl
+    <<"D=M"<<std::endl
+    <<"@5"<<std::endl
+    <<"A=D-A"<<std::endl
+    <<"D=M"<<std::endl
+    <<"@R15"<<std::endl
+    <<"M=D"<<std::endl
+
+    // Write return value to ARG[0]
+    <<"@R13"<<std::endl
+    <<"D=M"<<std::endl
+    <<"@ARG"<<std::endl
+    <<"A=M"<<std::endl
+    <<"M=D"<<std::endl
+
+    // Set SP to return value + 1
+    <<"@ARG"<<std::endl
+    <<"D=M+1"<<std::endl
+    <<"@SP"<<std::endl
+    <<"M=D"<<std::endl
+
+    // Restore Caller's segments
+    <<restoreSegment("THAT",1)
+    <<restoreSegment("THIS",2)
+    <<restoreSegment("ARG",3)
+    <<restoreSegment("LCL",4)
+
+    // Jump to return address
+    <<"@R15"<<std::endl
+    <<"A=M"<<std::endl
+    <<"0;JMP"<<std::endl;
+}
+
+std::string CodeWriter::saveSegment(const std::string& segment)
+{
+    std::stringstream ss;
+    ss<<"@"<<segment<<std::endl
+        <<"D=M"<<std::endl
+        <<"@SP"<<std::endl
+        <<"A=M"<<std::endl
+        <<"M=D"<<std::endl
+        <<"@SP"<<std::endl
+        <<"M=M+1"<<std::endl;
+    return ss.str();
+}
+
+std::string CodeWriter::restoreSegment(const std::string& segment,
+                                        uint16_t offset)
+{
+    std::stringstream ss;
+    ss<<"@R14"<<std::endl
+        <<"D=M"<<std::endl
+        <<"@"<<offset<<std::endl
+        <<"A=D-A"<<std::endl
+        <<"D=M"<<std::endl
+        <<"@"<<segment<<std::endl
+        <<"M=D"<<std::endl;
+    return ss.str();
+}
+
+std::string CodeWriter::genLabel(const std::string& input)
+{
+    return (_currFunction.empty() ? _fileName : _currFunction) + "$" + input;
 }

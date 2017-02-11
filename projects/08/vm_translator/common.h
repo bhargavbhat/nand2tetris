@@ -21,6 +21,10 @@ enum class CommandType
     C_GOTO,
     C_IF_GOTO,
 
+    C_FUNCTION,
+    C_CALL,
+    C_RETURN,
+
     C_MAX_COMMAND
 };
 

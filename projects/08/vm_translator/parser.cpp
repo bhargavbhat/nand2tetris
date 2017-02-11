@@ -93,6 +93,12 @@ CommandType Parser::commandType(void)
             return CommandType::C_GOTO;
         else if(command.compare("if-goto") == 0)
             return CommandType::C_IF_GOTO;
+        else if(command.compare("function") == 0)
+            return CommandType::C_FUNCTION;
+        else if(command.compare("call") == 0)
+            return CommandType::C_CALL;
+        else if(command.compare("return") == 0)
+            return CommandType::C_RETURN;
         else
             return CommandType::C_INVALID_COMMAND;
     }
@@ -108,13 +114,18 @@ CommandType Parser::commandType(void)
 std::string Parser::arg1(void)
 {
     std::string arg;
-    if(CommandType::C_ARITHMETIC == commandType())
+    auto cmd = commandType();
+    if(CommandType::C_ARITHMETIC == cmd)
     {
         arg = _cmdTokens[0];
     }
-    else
+    else if(CommandType::C_RETURN != cmd)
     {
         arg = _cmdTokens[1];
+    }
+    else
+    {
+        //Nothing to do
     }
     return arg;
 }
@@ -124,7 +135,9 @@ uint16_t Parser::arg2(void)
     auto cmd = commandType();
     uint16_t ret = 0;
     if(CommandType::C_PUSH == cmd ||
-        CommandType::C_POP == cmd)
+        CommandType::C_POP == cmd ||
+        CommandType::C_FUNCTION == cmd ||
+        CommandType::C_CALL == cmd)
     {
         ret = (uint16_t) std::stoul(_cmdTokens[2]);
     }

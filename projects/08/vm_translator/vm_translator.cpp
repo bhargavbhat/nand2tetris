@@ -85,6 +85,37 @@ int main(int argc, char** argv)
                 c.writeIfGoto(p.arg1());
                 }
                 break;
+            case CommandType::C_FUNCTION:
+                {
+#ifdef DEBUG_MAIN
+                std::cout<<"FUNC"<<std::endl;
+                std::cout<<"arg1 = "<<p.arg1()<<std::endl;
+                std::cout<<"arg2 = "<<p.arg2()<<std::endl;
+#endif
+                c.writeFunction(p.arg1(), p.arg2());
+                }
+                break;
+
+            case CommandType::C_CALL:
+                {
+#ifdef DEBUG_MAIN
+                std::cout<<"CALL"<<std::endl;
+                std::cout<<"arg1 = "<<p.arg1()<<std::endl;
+                std::cout<<"arg2 = "<<p.arg2()<<std::endl;
+#endif
+                c.writeCall(p.arg1(), p.arg2());
+                }
+                break;
+
+            case CommandType::C_RETURN:
+                {
+#ifdef DEBUG_MAIN
+                std::cout<<"RET"<<std::endl;
+#endif
+                c.writeReturn();
+                }
+                break;
+
            default:
 #ifdef DEBUG_MAIN
                 std::cout<<"UNK"<<std::endl;
