@@ -20,6 +20,7 @@ class CodeWriter
         std::ofstream _fOut;
         std::string _sourceLine;
         std::string _fileName;
+        unsigned int _jmpNumber;
 
 };
 

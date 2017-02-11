@@ -4,6 +4,7 @@ CodeWriter::CodeWriter(const std::string& outputFileName)
 {
     _fOut.open(outputFileName);
     _fileName = getFileName(outputFileName);
+    _jmpNumber = 0;
 }
 
 void CodeWriter::writeArithmetic(const std::string& line)
@@ -59,10 +60,55 @@ void CodeWriter::writeArithmetic(const std::string& line)
             <<"A=M-1"<<std::endl
             <<"M=!M"<<std::endl;
     }
-    else if((line.compare("eq") == 0) ||
-            (line.compare("lt") == 0) ||
+    else if((line.compare("eq") == 0))
+    {
+        auto jmp = "E" + std::to_string(_jmpNumber++);
+    
+        _fOut<<"@SP"<<std::endl
+            <<"AM=M-1"<<std::endl
+            <<"D=M"<<std::endl
+            <<"@SP"<<std::endl
+            <<"AM=M-1"<<std::endl
+            <<"D=M-D"<<std::endl
+            <<"@"<<jmp<<std::endl
+            <<"D;JEQ"<<std::endl
+            <<"D=1"<<std::endl
+            <<"("<<jmp<<")"<<std::endl
+            <<"D=D-1"<<std::endl
+            <<"@SP"<<std::endl
+            <<"A=M"<<std::endl
+            <<"M=D"<<std::endl
+            <<"@SP"<<std::endl
+            <<"M=M+1"<<std::endl;
+    }
+    else if((line.compare("lt") == 0) ||
             (line.compare("gt") == 0))
     {
+        auto is_lt = (line.compare("lt") == 0);
+        auto instr = (is_lt ? "JLT" : "JGT");
+        auto condPass = (is_lt ? "JL.T" : "JG.T") + std::to_string(_jmpNumber);
+        auto condFail = (is_lt ? "JL.F" : "JG.F") + std::to_string(_jmpNumber);
+        ++_jmpNumber;
+
+        _fOut <<"@SP"<<std::endl
+            <<"AM=M-1"<<std::endl
+            <<"D=M"<<std::endl
+            <<"@SP"<<std::endl
+            <<"AM=M-1"<<std::endl
+            <<"D=M-D"<<std::endl
+            <<"@"<<condPass<<std::endl
+            <<"D;"<<instr<<std::endl
+            <<"D=0"<<std::endl
+            <<"@"<<condFail<<std::endl
+            <<"0;JMP"<<std::endl
+            <<"("<<condPass<<")"<<std::endl
+            <<"D=-1"<<std::endl
+            <<"("<<condFail<<")"<<std::endl
+            <<"@SP"<<std::endl
+            <<"A=M"<<std::endl
+            <<"M=D"<<std::endl
+            <<"@SP"<<std::endl
+            <<"M=M+1"<<std::endl;
     }
     else
     {
@@ -79,8 +125,8 @@ void CodeWriter::writePushPop(CommandType command,
 #endif
     if(CommandType::C_PUSH == command)
     {
-        std::string strIndex = std::to_string(index);
-        std::string baseAddr = getBaseAddr(segment);
+        auto strIndex = std::to_string(index);
+        auto baseAddr = getBaseAddr(segment);
 
         if (segment.compare("constant") == 0)
         {
@@ -138,7 +184,7 @@ void CodeWriter::writePushPop(CommandType command,
     }
     else if(CommandType::C_POP == command)
     {
-        std::string baseAddr = getBaseAddr(segment);
+        auto baseAddr = getBaseAddr(segment);
         if (segment.compare("static") == 0 ||
                 segment.compare("temp") == 0 ||
                 segment.compare("pointer") == 0)

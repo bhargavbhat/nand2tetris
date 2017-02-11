@@ -4,7 +4,7 @@
 #include<string>
 #include<algorithm>
 
-//#define DEBUG_PARSER
+#define DEBUG_PARSER
 //#define DEBUG_MAIN
 #define DEBUG_CODE_WRITER
 

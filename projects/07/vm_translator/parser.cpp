@@ -9,9 +9,9 @@ std::string trim(const std::string& str)
 {
     std::stringstream out;
 
-    // if len< 2 ignore, valid shortest instr: @1 etc
+    // if len < 2 ignore, valid shortest instr: @1 etc
     // if first two chars are "//", ignore, it is a comment
-    if((str.length() >= 4) && (str[0] != '/' && str[1] != '/'))
+    if((str.length() >= 2) && (str[0] != '/' && str[1] != '/'))
     {
         for(auto i : str)
         {
