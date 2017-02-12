@@ -4,7 +4,6 @@
 CodeWriter::CodeWriter(const std::string& outputFileName)
 {
     _fOut.open(outputFileName);
-    setFilename(outputFileName);
     _jmpNumber = 0;
 }
 
@@ -220,12 +219,12 @@ void CodeWriter::writePushPop(CommandType command,
                 <<"D=M"<<std::endl
                 <<"@"<<std::to_string(index)<<std::endl
                 <<"D=D+A"<<std::endl
-                <<"@R15"<<std::endl
+                <<"@3500"<<std::endl
                 <<"M=D"<<std::endl
                 <<"@SP"<<std::endl
                 <<"AM=M-1"<<std::endl
                 <<"D=M"<<std::endl
-                <<"@R15"<<std::endl
+                <<"@3500"<<std::endl
                 <<"A=M"<<std::endl
                 <<"M=D"<<std::endl;
         }
@@ -266,25 +265,24 @@ std::string CodeWriter::getBaseAddr(const std::string& segment)
 
 void CodeWriter::setFilename(const std::string& fileName)
 {
+#ifdef DEBUG_CODE_WRITER
+    if(!_fileName.empty())
+    _fOut<<"//END : "<<_fileName<<std::endl;
+#endif
     _fileName = getFileName(fileName);
+#ifdef DEBUG_CODE_WRITER
+    _fOut<<"//BEG : "<<_fileName<<std::endl;
+#endif
 }
 
 void CodeWriter::writeInit(void)
 {
     _fOut <<"// Init Code"<<std::endl
-        // set SP=256
         <<"@256"<<std::endl
         <<"D=A"<<std::endl
         <<"@SP"<<std::endl
-        <<"M=D"<<std::endl
-
-        // TODO: Call Sys.Init
-
-        // infinite loop after boot code
-        <<"(BOOT)"<<std::endl
-        <<"@BOOT"<<std::endl
-        <<"0;JMP"<<std::endl
-        <<std::endl;
+        <<"M=D"<<std::endl;
+        writeCall("Sys.init", 0);
 }
 
 void CodeWriter::writeLabel(const std::string& label)

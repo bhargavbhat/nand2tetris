@@ -28,6 +28,9 @@ std::string trim(const std::string& str)
 
 Parser::Parser(const std::string& inputFileName)
 {
+#ifdef DEBUG_PARSER
+    std::cout<<"Open: " << inputFileName <<std::endl;
+#endif
     _fIn.open(inputFileName);
     _lineNum = 0;
 }
@@ -157,6 +160,9 @@ void Parser::tokenizeCommand(void)
 
 void Parser::close(void)
 {
+#ifdef DEBUG_PARSER
+    std::cout<<"Close" <<std::endl;
+#endif
     _fIn.close();
 }
 
