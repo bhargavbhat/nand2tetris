@@ -314,7 +314,7 @@ void CodeWriter::writeIfGoto(const std::string& label)
     _fOut<<"@SP"<<std::endl
         <<"AM=M-1"<<std::endl
         <<"D=M"<<std::endl
-        <<"@"<<_fileName<<"$"<<label<<std::endl
+        <<"@"<<genLabel(label)<<std::endl
         <<"D;JNE"<<std::endl;
 }
 

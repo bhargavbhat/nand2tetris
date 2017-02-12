@@ -22,6 +22,10 @@ int main(int argc, char** argv)
         std::cout<<"       vm_translator <input_dir>"<<std::endl;
         return 0;
     }
+
+    bool bootstrap = true;
+    if(argc >= 3)
+        bootstrap = (std::stoul(argv[2]) != 0) ? true : false;
    
     // fetch full paths of *.vm files to be translted
     std::vector<std::string> fileNames;
@@ -30,7 +34,10 @@ int main(int argc, char** argv)
 
     // create a CodeWriter and write out the bootstrap code
     CodeWriter c(outfile);
-    c.writeInit();
+
+    // skip bootstrap code only if 3rd arg == 0
+    if(bootstrap)
+        c.writeInit();
 
     // parse each input file and generate code for it
     for(auto file : fileNames)
