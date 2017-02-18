@@ -4,3 +4,5 @@ https://www.coursera.org/learn/build-a-computer
 https://www.coursera.org/learn/nand2tetris2
 
 http://www.nand2tetris.org/software/HDL%20Survival%20Guide.html
+
+https://github.com/zirrostig/vim-jack-syntaxs://github.com/zirrostig/vim-jack-syntax
