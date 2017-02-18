@@ -12,9 +12,9 @@ push argument 1
 pop pointer 1           // that = argument[1]
 
 push constant 0
-pop that 0              // first element in the series = 0
+pop that 0              // first element = 0
 push constant 1
-pop that 1              // second element in the series = 1
+pop that 1              // second element = 1
 
 push argument 0
 push constant 2
@@ -24,6 +24,8 @@ pop argument 0          // num_of_elements -= 2 (first 2 elements are set)
 label MAIN_LOOP_START
 
 push argument 0
+push constant 0
+gt
 if-goto COMPUTE_ELEMENT // if num_of_elements > 0, goto COMPUTE_ELEMENT
 goto END_PROGRAM        // otherwise, goto END_PROGRAM
 

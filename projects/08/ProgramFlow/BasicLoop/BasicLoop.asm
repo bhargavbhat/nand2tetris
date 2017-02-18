@@ -1,3 +1,4 @@
+//BEG : BasicLoop
 // push constant 0    
 @0
 D=A
@@ -11,12 +12,12 @@ M=M+1
 D=M
 @0
 D=D+A
-@R15
+@3500
 M=D
 @SP
 AM=M-1
 D=M
-@R15
+@3500
 A=M
 M=D
 // label LOOP_START
@@ -55,12 +56,12 @@ M=M+D
 D=M
 @0
 D=D+A
-@R15
+@3500
 M=D
 @SP
 AM=M-1
 D=M
-@R15
+@3500
 A=M
 M=D
 // push argument 0
@@ -94,12 +95,12 @@ M=M-D
 D=M
 @0
 D=D+A
-@R15
+@3500
 M=D
 @SP
 AM=M-1
 D=M
-@R15
+@3500
 A=M
 M=D
 // push argument 0

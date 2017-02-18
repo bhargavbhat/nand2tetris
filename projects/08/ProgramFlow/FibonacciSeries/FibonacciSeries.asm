@@ -1,3 +1,4 @@
+//BEG : FibonacciSeries
 // push argument 1
 @ARG
 D=M
@@ -28,12 +29,12 @@ M=M+1
 D=M
 @0
 D=D+A
-@R15
+@3500
 M=D
 @SP
 AM=M-1
 D=M
-@R15
+@3500
 A=M
 M=D
 // push constant 1
@@ -49,12 +50,12 @@ M=M+1
 D=M
 @1
 D=D+A
-@R15
+@3500
 M=D
 @SP
 AM=M-1
 D=M
-@R15
+@3500
 A=M
 M=D
 // push argument 0
@@ -88,12 +89,12 @@ M=M-D
 D=M
 @0
 D=D+A
-@R15
+@3500
 M=D
 @SP
 AM=M-1
 D=M
-@R15
+@3500
 A=M
 M=D
 // label MAIN_LOOP_START
@@ -104,6 +105,34 @@ D=M
 @0
 A=D+A
 D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 0
+@0
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// gt
+@SP
+AM=M-1
+D=M
+@SP
+AM=M-1
+D=M-D
+@JG.T0
+D;JGT
+D=0
+@JG.F0
+0;JMP
+(JG.T0)
+D=-1
+(JG.F0)
 @SP
 A=M
 M=D
@@ -154,12 +183,12 @@ M=M+D
 D=M
 @2
 D=D+A
-@R15
+@3500
 M=D
 @SP
 AM=M-1
 D=M
-@R15
+@3500
 A=M
 M=D
 // push pointer 1
@@ -222,12 +251,12 @@ M=M-D
 D=M
 @0
 D=D+A
-@R15
+@3500
 M=D
 @SP
 AM=M-1
 D=M
-@R15
+@3500
 A=M
 M=D
 // goto MAIN_LOOP_START
