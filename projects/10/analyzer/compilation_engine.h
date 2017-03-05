@@ -27,6 +27,11 @@ class CompilationEngine
         void compileTerm(void);
         void compileExpressionList(void);
 
+        void advance(void);
+        void expect(TokenType type);
+        void expectSym(const std::string& sym);
+        void compileSubroutineBody(void);
+
         std::string _inputFile, _outputFile;
         std::ofstream _fOut;
         JackTokenizer _tokenizer;

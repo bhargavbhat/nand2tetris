@@ -253,10 +253,87 @@ void JackTokenizer::tokenizeLines(void)
         }
     }
 
+    // we don't need the lines anymore
+    _lines.clear();
+
+    // done tokenizing, prefetch first token
+    if(hasMoreTokens())
+        advance();
+
 #ifdef DEBUG_TOKENIZER
     std::cout<<"Tokens found("<<_tokens.size()<<") ";
     for(auto tok : _tokens)
         std::cout<<tok<<std::endl;
     std::cout<<std::endl;
 #endif
+}
+
+std::string JackTokenizer::writeKeyword(void)
+{
+    std::stringstream ss;
+    if(TokenType::KEYWORD != tokenType())
+    {
+        ss<<"<error> tok " <<_currToken<<" is not a KEYWORD </error>"<<std::endl;
+    }
+    else
+    {
+        ss<<"<keyword> " <<_currToken<<" </keyword>"<<std::endl;
+    }
+    return ss.str();
+}
+
+std::string JackTokenizer::writeIdentifier(void)
+{
+    std::stringstream ss;
+    if(TokenType::IDENTIFIER != tokenType())
+    {
+        ss<<"<error> tok " <<_currToken<<" is not an IDENTIFIER </error>"<<std::endl;
+    }
+    else
+    {
+        ss<<"<identifier> " <<_currToken<<" </identifer>"<<std::endl;
+    }
+    return ss.str();
+}
+
+std::string JackTokenizer::writeSymbol(void)
+{
+    std::stringstream ss;
+    if(TokenType::SYMBOL != tokenType())
+    {
+        ss<<"<error> tok " <<_currToken<<" is not a SYMBOL </error>"<<std::endl;
+    }
+    else
+    {
+        ss<<"<symbol> " <<_currToken<<" </symbol>"<<std::endl;
+    }
+    return ss.str();
+}
+
+std::string JackTokenizer::writeIntConst(void)
+{
+    std::stringstream ss;
+    if(TokenType::INT_CONST != tokenType())
+    {
+        ss<<"<error> tok " <<_currToken<<" is not a INT_CONSTANT </error>"<<std::endl;
+    }
+    else
+    {
+        ss<<"<integerConstant> " <<_currToken<<" </integerConstant>"<<std::endl;
+    }
+    return ss.str();
+}
+
+std::string JackTokenizer::writeStrConst(void)
+{
+    std::stringstream ss;
+    if(TokenType::STRING_CONST != tokenType())
+    {
+        ss<<"<error> tok " <<_currToken<<" is not a STRING_CONSTANT </error>"<<std::endl;
+    }
+    else
+    {
+        ss<<"<stringConstant> " <<_currToken<<" </stringConstant>"<<std::endl;
+    }
+    return ss.str();
 }

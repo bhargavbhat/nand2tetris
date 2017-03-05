@@ -71,6 +71,13 @@ class JackTokenizer
         int intVal(void);
         std::string stringVal(void);
 
+        std::string writeKeyword(void);
+        std::string writeIdentifier(void);
+        std::string writeSymbol(void);
+        std::string writeIntConst(void);
+        std::string writeStrConst(void);
+        
+
     private:
         void lexFile(void);                 // read *.jack file into a vector, discard comments & empty lines
         void tokenizeLines(void);           // tokenize each line in vector, producing stream of tokens

@@ -3,6 +3,7 @@
 #include<string>
 #include<algorithm>
 #include<iterator>
+#include<cstdlib>
 
 //#define DEBUG_TOKENIZER
 #define DEBUG_COMPILER
