@@ -1,6 +1,12 @@
+    /* test */    
+    /*
+       mult line 
+     */
+
+/** API SIGN */
 class Main {
 
-    static int x;
+    static int x, y; // test
     field boolean bol;
 
     function void main() {
@@ -14,6 +20,7 @@ class Main {
 
     method DummyType test (int a, YetAnotherType b)
     {
-
+        var boolean x, y, z, w;
+        var int a;
     }
 }

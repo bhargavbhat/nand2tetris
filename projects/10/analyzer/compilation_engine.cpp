@@ -108,7 +108,7 @@ void CompilationEngine::compileClassVarDec(void)
         else if(((KeywordType::METHOD == kw) 
                     || (KeywordType::FUNCTION == kw)
                     || (KeywordType::CONSTRUCTOR == kw)))
-            break;      //sub-routine decl start
+            break;      //subroutine decl start
         else
             assert(0);  //unexpected keyword
 
@@ -126,28 +126,32 @@ void CompilationEngine::compileClassVarDec(void)
         else
             _fOut<<_tokenizer.writeIdentifier();
 
-        // parse var name
-        advance();
-        expect(TokenType::IDENTIFIER);
-        _fOut<<_tokenizer.writeIdentifier();
+        while(1)
+        {
+            // parse var name
+            advance();
+            expect(TokenType::IDENTIFIER);
+            _fOut<<_tokenizer.writeIdentifier();
 
-        // parse separator "," or end of var decl ";"
-        advance();
-        expect(TokenType::SYMBOL);
-        if(_tokenizer.symbol().compare(",") == 0)
-        {
-            _fOut<<_tokenizer.writeSymbol();
+            // parse separator "," or end of var decl ";"
+            advance();
+            expect(TokenType::SYMBOL);
+            if(_tokenizer.symbol().compare(",") == 0)
+            {
+                _fOut<<_tokenizer.writeSymbol();
+            }
+            else if(_tokenizer.symbol().compare(";") == 0)
+            {
+                _fOut<<_tokenizer.writeSymbol();
+                break;
+            }
+            else
+            {
+                // error case
+                assert(0);
+            }
         }
-        else if(_tokenizer.symbol().compare(";") == 0)
-        {
-            _fOut<<_tokenizer.writeSymbol();
-        }
-        else
-        {
-            // error case
-            assert(0);
-        }
-   
+
         // prepare to parse next var decl
         advance();
 
@@ -302,6 +306,7 @@ void CompilationEngine::compileSubroutineBody(void)
     {
         // parse local var decl
         assert(KeywordType::VAR == _tokenizer.keyWord());
+        compileVarDec();
 
         // parse function statements
     }
@@ -314,7 +319,63 @@ void CompilationEngine::compileSubroutineBody(void)
 
 void CompilationEngine::compileVarDec(void)
 {
-    assert(0);
+    while(1)
+    {
+        expect(TokenType::KEYWORD);
+        auto kw = _tokenizer.keyWord();
+
+        // write "var" keyword
+        if(KeywordType::VAR == kw)
+            _fOut<<_tokenizer.writeKeyword();
+        else
+            break;      //subroutine statements start
+
+        // parse datatype
+        advance();
+        auto tp = _tokenizer.tokenType();
+        assert(TokenType::KEYWORD == tp || TokenType::IDENTIFIER == tp);
+        if(TokenType::KEYWORD == tp)
+        {
+            kw = _tokenizer.keyWord();
+            assert((KeywordType::INT == kw) || (KeywordType::CHAR == kw) 
+                    || (KeywordType::BOOLEAN == kw));
+            _fOut<<_tokenizer.writeKeyword();
+        }
+        else
+            _fOut<<_tokenizer.writeIdentifier();
+
+        while(1)
+        {
+            // parse var name
+            advance();
+            expect(TokenType::IDENTIFIER);
+            _fOut<<_tokenizer.writeIdentifier();
+
+            // parse separator "," or end of var decl ";"
+            advance();
+            expect(TokenType::SYMBOL);
+            if(_tokenizer.symbol().compare(",") == 0)
+            {
+                _fOut<<_tokenizer.writeSymbol();
+            }
+            else if(_tokenizer.symbol().compare(";") == 0)
+            {
+                _fOut<<_tokenizer.writeSymbol();
+                break;
+            }
+            else
+            {
+                // error case
+                assert(0);
+            }
+        }
+        // prepare to parse next var decl
+        advance();
+
+        // handle classes with fields only, no subroutines
+        if(TokenType::KEYWORD != _tokenizer.tokenType())
+            break;
+    }
 }
 
 void CompilationEngine::compileStatements(void)

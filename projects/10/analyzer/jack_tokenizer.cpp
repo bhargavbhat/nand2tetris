@@ -159,20 +159,34 @@ void JackTokenizer::lexFile(void)
 {
     std::string str;
     bool inComments = false;
+    
+    // helper lambda to decide if rest of the line
+    // is an inline comment
+    auto isCmt = [](char a, char b){
+        return ((a == '/') && (a == b));
+    };
+
     while(std::getline(_fIn, str))
     {
+        str = remove_extra_whitespaces(trim(str));
+
+        // get rid of any inline comments
+        str.erase(std::adjacent_find(str.begin(), str.end(), isCmt),str.end());
+   
+        auto len = str.length();
         if(str.empty())
             continue;
-        else if(str[0] == '/' && str[1] == '/')
-            continue;
-        else if(str[0] == '/' && str[1] == '*' && !inComments)
-            inComments = true;  
-        else if(str[0] == '*' && str[1] == '/' && inComments)
+        else if((len >= 2) && str[0] == '/' && str[1] == '*'
+                && str[len-2] == '*' && str[len-1] == '/')
+            continue;   // handle /**/ comments that are only a single line
+        else if((len >= 2) && str[0] == '/' && str[1] == '*' && !inComments)
+            inComments = true;
+        else if((len >= 2) && str[0] == '*' && str[1] == '/' && inComments)
             inComments = false;
-        else if(std::all_of(str.begin(), str.end(), ::isspace))
-            continue;   // ignores lines that are all whitespace
+        else if(inComments || std::all_of(str.begin(), str.end(), ::isspace))
+            continue;   // ignores lines that are all whitespace & commented lines
         else
-            _lines.push_back(remove_extra_whitespaces(trim(str)));
+            _lines.push_back(str);
     }
 
 #ifdef DEBUG_TOKENIZER
