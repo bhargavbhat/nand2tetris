@@ -68,9 +68,15 @@ void CompilationEngine::compileClass(void)
     if((KeywordType::FIELD == kw) || (KeywordType::STATIC == kw))
     {
         compileClassVarDec();
+
+        // check if there are any subroutine in the class
+        // if so, update the value of kw
+        if(_tokenizer.hasMoreTokens() && 
+                (TokenType::KEYWORD == _tokenizer.tokenType()))
+            kw = _tokenizer.keyWord();
     }
 
-    // handle methods & functions, if present
+    // handle subroutine & functions, if present
     if((KeywordType::METHOD == kw) 
         || (KeywordType::FUNCTION == kw)
         || (KeywordType::CONSTRUCTOR == kw))
@@ -91,26 +97,94 @@ void CompilationEngine::compileClass(void)
 
 void CompilationEngine::compileClassVarDec(void)
 {
-    // TODO :handle
-    assert(0);
+    while(1)
+    {
+        expect(TokenType::KEYWORD);
+        auto kw = _tokenizer.keyWord();
+
+        // write var type: static, field
+        if((KeywordType::STATIC == kw) || (KeywordType::FIELD == kw))
+            _fOut<<_tokenizer.writeKeyword();
+        else if(((KeywordType::METHOD == kw) 
+                    || (KeywordType::FUNCTION == kw)
+                    || (KeywordType::CONSTRUCTOR == kw)))
+            break;      //sub-routine decl start
+        else
+            assert(0);  //unexpected keyword
+
+        // parse datatype
+        advance();
+        auto tp = _tokenizer.tokenType();
+        assert(TokenType::KEYWORD == tp || TokenType::IDENTIFIER == tp);
+        if(TokenType::KEYWORD == tp)
+        {
+            kw = _tokenizer.keyWord();
+            assert((KeywordType::INT == kw) || (KeywordType::CHAR == kw) 
+                    || (KeywordType::BOOLEAN == kw));
+            _fOut<<_tokenizer.writeKeyword();
+        }
+        else
+            _fOut<<_tokenizer.writeIdentifier();
+
+        // parse var name
+        advance();
+        expect(TokenType::IDENTIFIER);
+        _fOut<<_tokenizer.writeIdentifier();
+
+        // parse separator "," or end of var decl ";"
+        advance();
+        expect(TokenType::SYMBOL);
+        if(_tokenizer.symbol().compare(",") == 0)
+        {
+            _fOut<<_tokenizer.writeSymbol();
+        }
+        else if(_tokenizer.symbol().compare(";") == 0)
+        {
+            _fOut<<_tokenizer.writeSymbol();
+        }
+        else
+        {
+            // error case
+            assert(0);
+        }
+   
+        // prepare to parse next var decl
+        advance();
+
+        // handle classes with fields only, no subroutines
+        if(TokenType::KEYWORD != _tokenizer.tokenType())
+            break;
+    }
 }
+
 
 void CompilationEngine::compileSubroutine(void)
 {
-    expect(TokenType::KEYWORD);
-    auto kw = _tokenizer.keyWord();
-
-    while((KeywordType::METHOD == kw) || (KeywordType::FUNCTION == kw) 
-            || (KeywordType::CONSTRUCTOR == kw))
+    while(1)
     {
-        // write subroutine type: method, func, ctor
-        _fOut<<_tokenizer.writeKeyword();
-
-        // parse subroutine return type
-        advance();
         expect(TokenType::KEYWORD);
+        auto kw = _tokenizer.keyWord();
+
+        // write subroutine type: method, func, ctor
+        assert((KeywordType::METHOD == kw) || (KeywordType::FUNCTION == kw) 
+                || (KeywordType::CONSTRUCTOR == kw));
         _fOut<<_tokenizer.writeKeyword();
 
+        // parse subroutine return type: void, int, char, boolean or UserType 
+        advance();
+        auto tp = _tokenizer.tokenType();
+        assert((TokenType::KEYWORD == tp) || (TokenType::IDENTIFIER == tp));
+        if(TokenType::KEYWORD == _tokenizer.tokenType())
+        {
+            // ensure type is void, int, char or boolean
+            kw = _tokenizer.keyWord();
+            assert((KeywordType::INT == kw) || (KeywordType::CHAR == kw) ||
+                    (KeywordType::BOOLEAN == kw) || (KeywordType::VOID == kw));
+            _fOut<<_tokenizer.writeKeyword();
+        }
+        else
+            _fOut<<_tokenizer.writeIdentifier();
+        
         // parse subroutine name
         advance();
         expect(TokenType::IDENTIFIER);
@@ -124,16 +198,32 @@ void CompilationEngine::compileSubroutine(void)
 
         // parse the function body
         // this calls compileStatements()
-        advance();
         compileSubroutineBody();
 
+        // process next subroutine, if any
         if(_tokenizer.hasMoreTokens())
         {
-            _tokenizer.advance();
-            kw = _tokenizer.keyWord();
+            if(TokenType::KEYWORD == _tokenizer.tokenType())
+            {
+                // ensure this is a subroutine decl
+                kw = _tokenizer.keyWord();
+                assert((KeywordType::METHOD == kw) || (KeywordType::FUNCTION == kw) 
+                || (KeywordType::CONSTRUCTOR == kw));
+
+                // continue parsing subroutine decls
+                continue;
+            }
+            else
+            {
+                // end of SubroutineDec
+                break;
+            }
         }
         else
+        {
+            // no more tokens
             break;
+        }
     }
  }
 
@@ -149,7 +239,11 @@ void CompilationEngine::compileParameterList(void)
     // subroutine has no args => paramList is ()
     if((TokenType::SYMBOL == _tokenizer.tokenType()) 
             && (_tokenizer.symbol().compare(")") == 0))
+    {
+        _fOut<<_tokenizer.writeSymbol();
+        advance();
         return;
+    }
 
     // subroutine has one or more args => paramList is (T t, ...)
     while(1)
@@ -198,6 +292,24 @@ void CompilationEngine::compileParameterList(void)
 
 void CompilationEngine::compileSubroutineBody(void)
 {
+    // parse "{"
+    expectSym("{");
+    _fOut<<_tokenizer.writeSymbol();
+    advance();
+
+    if((_tokenizer.hasMoreTokens())
+        && (TokenType::KEYWORD == _tokenizer.tokenType()))
+    {
+        // parse local var decl
+        assert(KeywordType::VAR == _tokenizer.keyWord());
+
+        // parse function statements
+    }
+
+    // parse "}"
+    expectSym("}");
+    _fOut<<_tokenizer.writeSymbol();
+    advance();
 }
 
 void CompilationEngine::compileVarDec(void)

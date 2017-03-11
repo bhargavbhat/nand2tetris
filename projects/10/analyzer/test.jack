@@ -1,6 +1,19 @@
 class Main {
+
+    static int x;
+    field boolean bol;
+
     function void main() {
 
     }
-}
+    
+    constructor void ctor()
+    {
 
+    }
+
+    method DummyType test (int a, YetAnotherType b)
+    {
+
+    }
+}

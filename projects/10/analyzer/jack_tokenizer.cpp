@@ -6,7 +6,6 @@
 
 
 const std::map<std::string, KeywordType> KEYWORD_MAP = {
-    {"test", KeywordType::KEYWORD_TYPE_INVALID},
     {"class",KeywordType::CLASS},
     {"constructor",KeywordType::CONSTRUCTOR},
     {"function",KeywordType::FUNCTION},
@@ -162,7 +161,7 @@ void JackTokenizer::lexFile(void)
     bool inComments = false;
     while(std::getline(_fIn, str))
     {
-        if(str.empty() || str.length() < 2)
+        if(str.empty())
             continue;
         else if(str[0] == '/' && str[1] == '/')
             continue;
