@@ -23,4 +23,15 @@ class Main {
         var boolean x, y, z, w;
         var int a;
     }
+
+    method boolean test2()
+    {
+        let x = 0;
+    }
+
+    method boolean test3()
+    {
+        var int x, y;
+        let x = 0;
+    }
 }

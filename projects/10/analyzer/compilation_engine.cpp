@@ -301,14 +301,20 @@ void CompilationEngine::compileSubroutineBody(void)
     _fOut<<_tokenizer.writeSymbol();
     advance();
 
+    // parse local var decl, if exists
+    if((_tokenizer.hasMoreTokens())
+        && (TokenType::KEYWORD == _tokenizer.tokenType())
+        && (KeywordType::VAR == _tokenizer.keyWord()))
+    {
+        compileVarDec();
+    }
+
+    // parse function statements, if exists
     if((_tokenizer.hasMoreTokens())
         && (TokenType::KEYWORD == _tokenizer.tokenType()))
     {
-        // parse local var decl
-        assert(KeywordType::VAR == _tokenizer.keyWord());
-        compileVarDec();
-
-        // parse function statements
+        expect(TokenType::KEYWORD);
+        compileStatements();
     }
 
     // parse "}"
@@ -369,10 +375,11 @@ void CompilationEngine::compileVarDec(void)
                 assert(0);
             }
         }
+
         // prepare to parse next var decl
         advance();
 
-        // handle classes with fields only, no subroutines
+        // exit condition
         if(TokenType::KEYWORD != _tokenizer.tokenType())
             break;
     }
@@ -380,7 +387,28 @@ void CompilationEngine::compileVarDec(void)
 
 void CompilationEngine::compileStatements(void)
 {
-    assert(0);
+   while(1)
+   {
+        expect(TokenType::KEYWORD);
+        auto kw = _tokenizer.keyWord();
+
+        // compile each type of statement
+        switch(kw)
+        {
+            case KeywordType::LET:
+            {
+                compileLet();
+            }
+            break;
+
+            default:
+                assert(0);  // error case
+        }
+
+        // exit condition
+        if(TokenType::KEYWORD != _tokenizer.tokenType())
+            break;
+    } 
 }
 
 void CompilationEngine::compileDo(void)
@@ -390,7 +418,54 @@ void CompilationEngine::compileDo(void)
 
 void CompilationEngine::compileLet(void)
 {
-    assert(0);
+    expect(TokenType::KEYWORD);
+    auto kw = _tokenizer.keyWord();
+    
+    // write let
+    assert(KeywordType::LET == kw);
+    _fOut<<_tokenizer.writeKeyword();
+
+    // parse variable name
+    advance();
+    expect(TokenType::IDENTIFIER);
+    
+    // parse array case, if exists
+    advance();
+    expect(TokenType::SYMBOL);
+ 
+    if(_tokenizer.symbol().compare("[") == 0)
+    {
+        _fOut<<_tokenizer.writeSymbol();
+        advance();
+
+        // compile expression within "[" and "]"
+        compileExpression();
+
+        // ensure "]" is present
+        expect(TokenType::SYMBOL);
+        assert(_tokenizer.symbol().compare("]") == 0);
+        _fOut<<_tokenizer.writeSymbol();
+        advance();
+    }
+
+    if(_tokenizer.symbol().compare("=") == 0)
+    {
+        _fOut<<_tokenizer.writeSymbol();
+        advance();
+
+        // compile expression within "[" and "]"
+        compileExpression();
+
+        // ensure ";" is present
+        expect(TokenType::SYMBOL);
+        assert(_tokenizer.symbol().compare(";") == 0);
+        _fOut<<_tokenizer.writeSymbol();
+        advance();
+    }
+    else
+    {
+        assert(0); // error case
+    }
 }
 
 void CompilationEngine::compileWhile(void)
@@ -410,7 +485,8 @@ void CompilationEngine::compileIf(void)
 
 void CompilationEngine::compileExpression(void)
 {
-    assert(0);
+    advance();
+    //assert(0);
 }
 
 void CompilationEngine::compileTerm(void)
