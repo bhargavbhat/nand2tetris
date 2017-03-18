@@ -10,12 +10,25 @@ class Main {
     field boolean bol;
 
     function void main() {
-
+        var int y;
+        if(y < 10)
+        {
+            do subRoutineCall();
+        }
     }
     
-    constructor void ctor()
+    constructor void ctor(boolean b)
     {
+        var int x;
 
+        if(b = true)
+        {
+            let x=20;
+        }
+        else
+        {
+            let x=30;
+        }
     }
 
     method DummyType test (int a, YetAnotherType b)

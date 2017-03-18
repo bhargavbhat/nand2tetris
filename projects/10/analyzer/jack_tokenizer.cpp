@@ -211,6 +211,9 @@ void JackTokenizer::tokenizeLines(void)
     // helper lambda to check if given char is a JACK lang symbol
     auto isSymbol = [](const char c){ return (SYMBOL_MAP.find(c) != SYMBOL_MAP.end()); };
 
+    // helper lambda to check if given string is a JACK lang keyword
+    auto isKeyword = [](const std::string& k){ return (KEYWORD_MAP.find(k) != KEYWORD_MAP.end()); };
+
     for(auto line : _lines)
     {
         bool inString = false;
@@ -260,9 +263,13 @@ void JackTokenizer::tokenizeLines(void)
                 else
                 {
                     tok<<*it;
-                }
+               }
             }
             ++it;
+
+            // handle "else" token that is usually on a line by itself
+            if(it == line.end() && isKeyword(tok.str()))
+                addToken(tok, _tokens);
         }
     }
 

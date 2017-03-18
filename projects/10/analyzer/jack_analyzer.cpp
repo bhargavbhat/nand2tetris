@@ -13,8 +13,8 @@ void getFileList(const std::string& infile,
     (void) infile;
 
     fileNames.clear();
-    fileNames.push_back("../ArrayTest/Main.jack");
-    //fileNames.push_back("./test.jack");
+    //fileNames.push_back("../ArrayTest/Main.jack");
+    fileNames.push_back("./test.jack");
 }
 
 void getOutputFile(const std::string& infile, std::string& outfile)

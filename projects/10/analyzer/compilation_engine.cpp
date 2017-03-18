@@ -614,7 +614,57 @@ void CompilationEngine::compileReturn(void)
 
 void CompilationEngine::compileIf(void)
 {
-    assert(0);
+    expect(TokenType::KEYWORD);
+    auto kw = _tokenizer.keyWord();
+    
+    // write if
+    assert(KeywordType::IF == kw);
+    _fOut<<_tokenizer.writeKeyword();
+    advance();
+
+    expectSym("(");
+    _fOut<<_tokenizer.writeSymbol();
+    advance();
+
+    // parse condition
+    compileExpression();
+
+    //ensure ")" is present after condition
+    expectSym(")");
+    _fOut<<_tokenizer.writeSymbol();
+    advance();
+
+    expectSym("{");
+    _fOut<<_tokenizer.writeSymbol();
+    advance();
+
+    // parse if branch body
+    compileStatements();
+
+    //ensure "}" is present after if
+    expectSym("}");
+    _fOut<<_tokenizer.writeSymbol();
+    advance();
+
+    // else branch is optional
+    if(TokenType::KEYWORD == _tokenizer.tokenType()
+        && KeywordType::ELSE == _tokenizer.keyWord())
+    {
+        _fOut<<_tokenizer.writeKeyword();
+        advance();
+
+        expectSym("{");
+        _fOut<<_tokenizer.writeSymbol();
+        advance();
+
+        // parse else branch body
+        compileStatements();
+
+        //ensure "}" is present after else
+        expectSym("}");
+        _fOut<<_tokenizer.writeSymbol();
+        advance();
+    }
 }
 
 void CompilationEngine::compileExpression(void)
