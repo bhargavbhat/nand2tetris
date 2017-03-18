@@ -22,16 +22,27 @@ class Main {
     {
         var boolean x, y, z, w;
         var int a;
+
+        while(a < 10)
+        {
+            let x = false;
+        }
     }
 
     method boolean test2()
     {
         let x = 0;
+        let x = abc + 10 - 15 * p[5];
+        do anObject.Subr(x, 10);
+        return false;
     }
 
-    method boolean test3()
+    method void test3()
     {
         var int x, y;
-        let x = 0;
+        let x = SomeClass.Subroutine(10, 30);
+        let y = AnotherSubroutine();
+        do YetAnotherSub(10);
+        return;
     }
 }

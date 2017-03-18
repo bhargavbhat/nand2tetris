@@ -45,10 +45,10 @@ const std::map<char, std::string> SYMBOL_MAP = {
     {'-', "-"},
     {'*', "*"},
     {'/', "/"},
-    {'&', "&amp;"},
+    {'&', "&"},
     {'|', "|"},
-    {'<', "&lt;"},
-    {'>', "&gt;"},
+    {'<', "<"},
+    {'>', ">"},
     {'=', "="},
     {'~', "~"},
 };
@@ -304,7 +304,7 @@ std::string JackTokenizer::writeIdentifier(void)
     }
     else
     {
-        ss<<"<identifier> " <<_currToken<<" </identifer>"<<std::endl;
+        ss<<"<identifier> " <<_currToken<<" </identifier>"<<std::endl;
     }
     return ss.str();
 }
@@ -318,7 +318,19 @@ std::string JackTokenizer::writeSymbol(void)
     }
     else
     {
-        ss<<"<symbol> " <<_currToken<<" </symbol>"<<std::endl;
+        ss<<"<symbol> ";
+        
+        // escape symbols before writing to XML
+        if(_currToken.compare("<") == 0)
+            ss<<"&lt;";
+        else if(_currToken.compare(">") == 0)
+            ss<<"&gt;";
+        else if(_currToken.compare("&") == 0)
+            ss<<"&amp;";
+        else
+            ss<<_currToken;
+
+        ss<<" </symbol>"<<std::endl;
     }
     return ss.str();
 }
@@ -346,7 +358,10 @@ std::string JackTokenizer::writeStrConst(void)
     }
     else
     {
-        ss<<"<stringConstant> " <<_currToken<<" </stringConstant>"<<std::endl;
+        // write string const without the quotes
+        ss<<"<stringConstant> " 
+            <<_currToken.substr(1, _currToken.length() - 2)
+            <<" </stringConstant>"<<std::endl;
     }
     return ss.str();
 }

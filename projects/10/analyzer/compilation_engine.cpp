@@ -198,6 +198,7 @@ void CompilationEngine::compileSubroutine(void)
         advance();
         expect(TokenType::SYMBOL);
         expectSym("(");
+        _fOut<<_tokenizer.writeSymbol();
         compileParameterList();
 
         // parse the function body
@@ -234,7 +235,6 @@ void CompilationEngine::compileSubroutine(void)
 void CompilationEngine::compileParameterList(void)
 {
     // ensure consistent state
-    expect(TokenType::SYMBOL);
     expectSym("(");
 
     // parse subroutine args
@@ -400,7 +400,26 @@ void CompilationEngine::compileStatements(void)
                 compileLet();
             }
             break;
-
+            case KeywordType::WHILE:
+            {
+                compileWhile();
+            }
+            break;
+            case KeywordType::DO:
+            {
+                compileDo();
+            }
+            break;
+            case KeywordType::RETURN:
+            {
+                compileReturn();
+            }
+            break;
+            case KeywordType::IF:
+            {
+                compileIf();
+            }
+            break;
             default:
                 assert(0);  // error case
         }
@@ -413,7 +432,68 @@ void CompilationEngine::compileStatements(void)
 
 void CompilationEngine::compileDo(void)
 {
-    assert(0);
+    // ensure consistent state
+    expect(TokenType::KEYWORD);
+    auto kw = _tokenizer.keyWord();
+
+    // write do
+    assert(KeywordType::DO == kw);
+    _fOut<<_tokenizer.writeKeyword();
+    advance();
+    
+    // parse subroutine name
+    expect(TokenType::IDENTIFIER);
+    _fOut<<_tokenizer.writeIdentifier();
+    advance();
+  
+    expect(TokenType::SYMBOL);
+    auto sym = _tokenizer.symbol();
+
+    if(sym.compare(".") == 0)
+    {
+        // write out . operator
+        _fOut<<_tokenizer.writeSymbol();
+        advance();
+
+        // write subroutine name
+        expect(TokenType::IDENTIFIER);
+        _fOut<<_tokenizer.writeIdentifier();
+        advance();
+
+        // parse arglist
+        expectSym("(");
+        _fOut<<_tokenizer.writeSymbol();
+
+        compileExpressionList();
+
+        // ensure subroutine call is well formed
+        expectSym(")");
+        _fOut<<_tokenizer.writeSymbol();
+
+        // complete parsing class_obj.subroutine(<args>)
+        advance();
+    }
+    else if(sym.compare("(") == 0)
+    {
+        _fOut<<_tokenizer.writeSymbol();
+
+        // parse arglist
+        compileExpressionList();
+
+        // ensure subroutine call is well formed
+        expectSym(")");
+        _fOut<<_tokenizer.writeSymbol();
+
+        // complete parsing subroutine(<args>)
+        advance();
+    }
+    else
+        assert(0);
+
+    // ensure do statement is terminated properly
+    expectSym(";");
+    _fOut<<_tokenizer.writeSymbol();
+    advance();
 }
 
 void CompilationEngine::compileLet(void)
@@ -428,6 +508,7 @@ void CompilationEngine::compileLet(void)
     // parse variable name
     advance();
     expect(TokenType::IDENTIFIER);
+    _fOut<<_tokenizer.writeIdentifier();
     
     // parse array case, if exists
     advance();
@@ -470,12 +551,65 @@ void CompilationEngine::compileLet(void)
 
 void CompilationEngine::compileWhile(void)
 {
-    assert(0);
+    expect(TokenType::KEYWORD);
+    auto kw = _tokenizer.keyWord();
+    
+    // write while
+    assert(KeywordType::WHILE == kw);
+    _fOut<<_tokenizer.writeKeyword();
+    advance();
+
+    expectSym("(");
+    _fOut<<_tokenizer.writeSymbol();
+    advance();
+
+    // parse condition
+    compileExpression();
+
+    //ensure ")" is present after condition
+    expectSym(")");
+    _fOut<<_tokenizer.writeSymbol();
+    advance();
+
+    expectSym("{");
+    _fOut<<_tokenizer.writeSymbol();
+    advance();
+
+    // parse loop body
+    compileStatements();
+
+    //ensure "}" is present after loop body
+    expectSym("}");
+    _fOut<<_tokenizer.writeSymbol();
+    advance();
 }
 
 void CompilationEngine::compileReturn(void)
 {
-    assert(0);
+    expect(TokenType::KEYWORD);
+    auto kw = _tokenizer.keyWord();
+    
+    // write return
+    assert(KeywordType::RETURN == kw);
+    _fOut<<_tokenizer.writeKeyword();
+    advance();
+
+    if(TokenType::SYMBOL == _tokenizer.tokenType()
+        && _tokenizer.symbol().compare(";") == 0)
+    {
+        _fOut<<_tokenizer.writeSymbol();
+        advance();
+    }
+    else
+    {
+        // parse return expression
+        compileExpression();
+
+        //ensure ";" is present after return
+        expectSym(";");
+        _fOut<<_tokenizer.writeSymbol();
+        advance();
+    }
 }
 
 void CompilationEngine::compileIf(void)
@@ -485,16 +619,166 @@ void CompilationEngine::compileIf(void)
 
 void CompilationEngine::compileExpression(void)
 {
-    advance();
-    //assert(0);
+    const std::string ops = "+-/*&|<>=";
+
+    compileTerm();
+
+    while(1)
+    {
+        if((TokenType::SYMBOL == _tokenizer.tokenType()) 
+            && (ops.find(_tokenizer.symbol()) != std::string::npos))
+        {
+            _fOut<<_tokenizer.writeSymbol();
+            advance();
+            compileTerm();
+        }
+        else
+            break;
+    }
 }
 
 void CompilationEngine::compileTerm(void)
 {
-    assert(0);
+
+    switch(_tokenizer.tokenType())
+    {
+        case TokenType::INT_CONST:
+        {
+            _fOut<<_tokenizer.writeIntConst();
+            advance();
+        }
+        break;
+        case TokenType::STRING_CONST:
+        {
+            _fOut<<_tokenizer.writeStrConst();
+            advance();
+        }
+        break;
+        case TokenType::KEYWORD:
+        {
+            auto kw = _tokenizer.keyWord();
+            assert((KeywordType::TRUE == kw) || (KeywordType::FALSE == kw) ||
+                    (KeywordType::NUL == kw) || (KeywordType::THIS == kw));
+            _fOut<<_tokenizer.writeKeyword();
+            advance();
+        }
+        break;
+        case TokenType::IDENTIFIER:
+        {
+            _fOut<<_tokenizer.writeIdentifier();
+            advance();
+
+            // check if this is an array access '[' or member subroutine call '.' 
+            // or regular subroutine call '('
+            if(TokenType::SYMBOL == _tokenizer.tokenType())
+            {
+                auto sym = _tokenizer.symbol();
+                if(sym.compare("[") == 0)
+                {
+                    _fOut<<_tokenizer.writeSymbol();
+                    advance();
+
+                    // parse <exp> inside []
+                    compileExpression();
+
+                    // ensure array access is well formed
+                    expectSym("]");
+                    _fOut<<_tokenizer.writeSymbol();
+
+                    // complete parsing of arr[exp]
+                    advance();
+                }
+                else if(sym.compare(".") == 0)
+                {
+                    // write out . operator
+                    _fOut<<_tokenizer.writeSymbol();
+                    advance();
+
+                    // write subroutine name
+                    expect(TokenType::IDENTIFIER);
+                    _fOut<<_tokenizer.writeIdentifier();
+                    advance();
+
+                    // parse arglist
+                    expectSym("(");
+                    _fOut<<_tokenizer.writeSymbol();
+                    
+                    compileExpressionList();
+
+                    // ensure subroutine call is well formed
+                    expectSym(")");
+                    _fOut<<_tokenizer.writeSymbol();
+
+                    // complete parsing class_obj.subroutine(<args>)
+                    advance();
+                }
+                else if(sym.compare("(") == 0)
+                {
+                    _fOut<<_tokenizer.writeSymbol();
+
+                    // parse arglist
+                    compileExpressionList();
+
+                    // ensure subroutine call is well formed
+                    expectSym(")");
+                    _fOut<<_tokenizer.writeSymbol();
+
+                    // complete parsing subroutine(<args>)
+                    advance();
+                }
+                else
+                {
+                    // nothing to do, symbol will be parsed as
+                    // part of a larger expression
+                }
+            }
+        }
+        break;
+        default:
+        {
+            // error case
+            assert(0);
+        }
+        break;
+    }
+
 }
 
 void CompilationEngine::compileExpressionList(void)
 {
-    assert(0);
+    // ensure consistent state
+    expectSym("(");
+
+    // parse subroutine args
+    advance();
+
+    //in case expression list is ()
+    if((TokenType::SYMBOL == _tokenizer.tokenType()) 
+            && (_tokenizer.symbol().compare(")") == 0))
+    {
+        return;
+    }
+
+    while(1)
+    {
+        compileExpression();
+       
+        // parse separator "," or end of param list ")"
+        expect(TokenType::SYMBOL);
+        if(_tokenizer.symbol().compare(",") == 0)
+        {
+            _fOut<<_tokenizer.writeSymbol();
+            advance();
+        }
+        else if(_tokenizer.symbol().compare(")") == 0)
+        {
+            // done parsing expression list
+            break;
+        }
+        else
+        {
+            // error case
+            assert(0);
+        }
+    }
 }
