@@ -689,7 +689,6 @@ void CompilationEngine::compileExpression(void)
 
 void CompilationEngine::compileTerm(void)
 {
-
     switch(_tokenizer.tokenType())
     {
         case TokenType::INT_CONST:
@@ -781,6 +780,41 @@ void CompilationEngine::compileTerm(void)
                     // nothing to do, symbol will be parsed as
                     // part of a larger expression
                 }
+            }
+        }
+        break;
+        case TokenType::SYMBOL:
+        {
+            // if this is a symbol there are two possibilities
+            // '(' expression ')' -OR- 'unaryOp'
+            assert((_tokenizer.symbol().compare("(") == 0)||
+                    (_tokenizer.symbol().compare("-") == 0)||
+                    (_tokenizer.symbol().compare("~") == 0));
+
+            if(_tokenizer.symbol().compare("(") == 0)
+            {
+                // write opening paren
+                _fOut<<_tokenizer.writeSymbol();
+                advance();
+                
+                // handle expression within parens
+                compileExpression();
+               
+                // write closing paren
+                expectSym(")");
+                _fOut<<_tokenizer.writeSymbol();
+
+                // complete parsing of '(' expression ')'
+                advance();
+            }
+            else
+            {
+                // write unary operator
+                _fOut<<_tokenizer.writeSymbol();
+                advance();
+
+                // handle unary operand
+                compileTerm();
             }
         }
         break;
