@@ -7,6 +7,7 @@
 
 //#define DEBUG_TOKENIZER
 #define DEBUG_COMPILER
+//#define DEBUG_MAIN
 
 // based on http://stackoverflow.com/a/35302029
 static inline std::string remove_extra_whitespaces(const std::string &input)
@@ -39,4 +40,9 @@ static inline std::string &trim(std::string &s) {
     return ltrim(rtrim(s));
 }
 
+static inline std::string removeFileExtn(const std::string& fileName)
+{
+    auto lastindex = fileName.find_last_of("."); 
+    return fileName.substr(0, lastindex); 
+}
 #endif //COMMON_H
